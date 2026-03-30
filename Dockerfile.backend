@@ -1,0 +1,36 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies — same as ReelForge working config
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    fonts-dejavu-core \
+    fonts-liberation \
+    imagemagick \
+    build-essential \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application
+COPY . .
+
+# Create required folders
+RUN mkdir -p data assets output_cinema voices music sfx
+
+# Environment variables
+ENV PYTHONUNBUFFERED=1
+ENV CINEMA_DB_PATH=/app/data/cinemaforge.db
+ENV ASSETS_FOLDER=/app/assets
+ENV OUTPUT_FOLDER=/app/output_cinema
+ENV VOICES_FOLDER=/app/voices
+ENV MUSIC_FOLDER=/app/music
+ENV SFX_FOLDER=/app/sfx
+
+EXPOSE 8001
+
+CMD ["uvicorn", "cinemaforge.main:app", "--host", "0.0.0.0", "--port", "8001"]
